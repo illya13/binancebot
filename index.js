@@ -1,6 +1,7 @@
-const cron = require('node-cron');
-const Binance = require('binance-api-node').default;
-const ta_trend_macd = require('./lib/ta_trend_macd');
+const cron = require('node-cron'),
+  Binance = require('binance-api-node').default,
+  ta_trend_macd = require('./lib/ta_trend_macd'),
+  abbreviate = require('number-abbreviate');
 
 const VOLUME = 500;
 const CHANGE = 5;
@@ -13,7 +14,7 @@ const OPTIONS = {
   'bollinger_time': 2,
   'bollinger_upper_bound_pct': 0,
   'bollinger_lower_bound_pct': 0,
-  'bollinger_width_threshold': 0.10,
+  'bollinger_width_threshold': 0.015,
 
   'rsi_periods': 14,
   'rsi_overbought': 60,
@@ -41,51 +42,48 @@ const OPTIONS = {
   'adosc_threshold': 0.9
 };
 
-function getUpperBound(s) {
-  return s.bollinger.upper;
+function getUpperBound(ta) {
+  return ta.bollinger.upper;
 }
 
-function isUpper(s, close) {
-  const upperBound = getUpperBound(s);
+function isUpper(ta, close) {
+  const upperBound = getUpperBound(ta);
   return close > (upperBound / 100) * (100 - OPTIONS.bollinger_upper_bound_pct)
 }
 
-function isRSIOverbought(s) {
-  return s.rsi > OPTIONS.rsi_overbought
+function isRSIOverbought(ta) {
+  return ta.rsi > OPTIONS.rsi_overbought
 }
 
-function isMACDPositive(s) {
-  return s.macd_histogram > 0
+function isMACDPositive(ta) {
+  return ta.macd_histogram > 0
 }
 
-function isCCIOverbought(s) {
-  return s.cci > OPTIONS.cci_overbought
+function isCCIOverbought(ta) {
+  return ta.cci > OPTIONS.cci_overbought
 }
 
-function isStochOverbought(s) {
-  return s.stoch.D > OPTIONS.stoch_overbought
+function isStochOverbought(ta) {
+  return ta.stoch.D > OPTIONS.stoch_overbought
 }
 
-function isADXInTrend(s) {
-  return s.adx > OPTIONS.adx_threshold
+function isADXInTrend(ta) {
+  return ta.adx > OPTIONS.adx_threshold
 }
 
-function isADOSCPositive(s) {
-  return s.adosc > 0
+function isADOSCPositive(ta) {
+  return ta.adosc > 0
 }
 
-function isUpperHit(s, close, upperBound) {
-  return isUpper(s, close, upperBound) && isADOSCPositive(s) && isUpperTrend(s)
-}
-
-function isUpperTrend(s) {
-  return isRSIOverbought(s) && isCCIOverbought(s) && isStochOverbought(s) &&
-    isMACDPositive(s) && isBBWWide(s) && isADXInTrend(s)
+function isUpperTrend(ta) {
+  return isRSIOverbought(ta) && isCCIOverbought(ta) && isStochOverbought(ta) && isBBWWide(ta) &&
+    isMACDPositive(ta) && isADOSCPositive(ta) && isADXInTrend(ta)
 }
 
 
-function isBBWWide(s) {
-  return s.bollinger.bbw > OPTIONS.bollinger_width_threshold
+function isBBWWide(ta) {
+  const bbw = (ta.bollinger.upper - ta.bollinger.lower) / ta.bollinger.middle;
+  return bbw > OPTIONS.bollinger_width_threshold
 }
 
 async function watch_loop() {
@@ -120,12 +118,18 @@ async function watch_loop() {
       OPTIONS.chaikin_fast, OPTIONS.chaikin_slow
     );
 
-    const upperHit = isUpperHit(ta, close);
+    const upperTrend = isUpperTrend(ta);
     console.log(s.symbol, close, '{ volume: ' + Number(stat.quoteVolume), ', change: ' + Number(stat.priceChangePercent) + ' }');
     console.log(ta);
-    if (upperHit) {
-      console.log(' FIRE ');
+    console.log('rsi: ' + ta.rsi.toFixed(0), ', cci: ' + ta.cci.toFixed(0), ', stoch: ' + ta.stoch.D.toFixed(0),
+      ', bbw: ' + (isBBWWide(ta) ? '+' : '-'), ', macd: ' + (isMACDPositive(ta) ? '+' : '-'),
+      ', adosc: ' + (isADOSCPositive(ta) ? '+' : '-'), ', adx: ' + (isADXInTrend(ta) ? '+' : '-'),
+      ', obv: ' + abbreviate(ta.obv, 2));
+
+    if (upperTrend) {
+      console.log('  FIRE  ');
     }
+
     console.log();
   });
 }

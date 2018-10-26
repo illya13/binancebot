@@ -5,6 +5,7 @@
   "dependencies": {
     "binance-api-node": "^0.8.6",
     "node-cron": "^2.0.3",
+    "number-abbreviate": "^2.0.0",
     "talib": "^1.0.5"
   }
 }
