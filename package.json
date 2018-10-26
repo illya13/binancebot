@@ -1,0 +1,10 @@
+{
+  "name": "binancebot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "binance-api-node": "^0.8.6",
+    "node-cron": "^2.0.3",
+    "talib": "^1.0.5"
+  }
+}
