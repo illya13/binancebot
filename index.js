@@ -120,7 +120,7 @@ async function watch_loop() {
 
     const upperTrend = isUpperTrend(ta);
     console.log(s.symbol, close, '{ volume: ' + Number(stat.quoteVolume), ', change: ' + Number(stat.priceChangePercent) + ' }');
-    console.log(ta);
+    // console.log(ta);
     console.log('rsi: ' + ta.rsi.toFixed(0), ', cci: ' + ta.cci.toFixed(0), ', stoch: ' + ta.stoch.D.toFixed(0),
       ', bbw: ' + (isBBWWide(ta) ? '+' : '-'), ', macd: ' + (isMACDPositive(ta) ? '+' : '-'),
       ', adosc: ' + (isADOSCPositive(ta) ? '+' : '-'), ', adx: ' + (isADXInTrend(ta) ? '+' : '-'),
