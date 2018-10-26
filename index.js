@@ -4,7 +4,7 @@ const cron = require('node-cron'),
   abbreviate = require('number-abbreviate');
 
 const VOLUME = 500;
-const CHANGE = 5;
+const CHANGE = 3;
 
 const OPTIONS = {
   'period': '3m',
