@@ -3,8 +3,9 @@ const cron = require('node-cron'),
   ta_trend_macd = require('./lib/ta_trend_macd'),
   abbreviate = require('number-abbreviate');
 
-const VOLUME = 500;
-const CHANGE = 3;
+const VOLUME = 1000;
+const CHANGE_LOW = 3;
+const CHANGE_HIGH = 10;
 
 const OPTIONS = {
   'period': '3m',
@@ -99,7 +100,9 @@ async function watch_loop() {
     // console.log(JSON.stringify(s));
     const stat = await client.dailyStats({symbol: s.symbol});
     // console.log(stat);
-    if ( (Number(stat.quoteVolume) < VOLUME) || (Number(stat.priceChangePercent) < CHANGE) ) {
+    if ( (Number(stat.quoteVolume) < VOLUME)
+      || (Number(stat.priceChangePercent) > CHANGE_HIGH)
+      || (Number(stat.priceChangePercent) < CHANGE_LOW) ) {
       return;
     }
 
@@ -128,6 +131,7 @@ async function watch_loop() {
 
     if (upperTrend) {
       console.log('  FIRE  ');
+      
     }
 
     console.log();
